@@ -1,0 +1,7 @@
+clouds:
+  nectar:
+    auth:
+      auth_url: https://keystone.rc.nectar.org.au:5000/v2.0/
+      username: <Replace with your OpenStack username>
+      password: <Replace with your OpenStack API password>
+      project_name: <Replace with your OpenStack project name>
