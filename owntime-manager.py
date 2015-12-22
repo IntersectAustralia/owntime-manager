@@ -248,7 +248,7 @@ def main(argv):
         except Exception as ex:
             exceptionString = str(ex)
             print "Error:"
-            print "  Check Internet connection and availability of NecTAR Cloud service"
+            print "  Check your Internet connection, clouds.yaml configuration file and availability of NecTAR Cloud service"
             print "  Run \'" + os.path.basename(__file__) + "\' to see usage instructions"
             print "  Exception Details: " + exceptionString
             

@@ -38,7 +38,9 @@ If you do not know your Nectar Cloud API password, follow these steps:
 1. On the left-hand side menu, click 'Reset Password'.
 1. Click the 'Reset Password' button to generate a new password.
 1. Copy the generated password to the `password` field in the `clouds.yaml` file. 
-          
+
+The Nectar Cloud project name can be found by logging into <https://dashboard.rc.nectar.org.au> and clicking the drop-down at the top left, to the right of the Nectar Cloud logo.  
+         
 The OpenStack Python SDK will look for `clouds.yaml` in a few locations. Copy the `clouds.yaml` file to one of these locations:
 
 * Current Directory
