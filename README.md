@@ -7,7 +7,7 @@ The script has been designed to work with Intersect's OwnTime cloud computing in
 
 The script uses the OpenStack Python SDK: <http://developer.openstack.org/sdks/python/openstacksdk/users/index.html>
 
-The script has been developed against Python 2.7.10.
+The script has been developed against Python 2.7.10 and OpenStack Python SDK 0.7.3.
 
 ## Installation
 
