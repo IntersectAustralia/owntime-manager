@@ -12,6 +12,10 @@ The script has been developed against Python 2.7.10 and OpenStack Python SDK 0.7
 ## Installation
 
 ### Install OpenStack Python SDK
+Clone this GitHub repository:
+
+    git clone https://github.com/IntersectAustralia/owntime-manager.git
+
 Install the OpenStack Python SDK using `pip` (`pip` installation instructions: <https://pip.pypa.io/en/stable/installing>):
 
     pip install openstacksdk

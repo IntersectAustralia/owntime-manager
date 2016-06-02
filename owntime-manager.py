@@ -5,7 +5,7 @@ owntime-manager.py
 
 description:    Helper script for managing virtual machines (VMs) on Intersect's OwnTime (http://www.intersect.org.au/content/owntime-cloud-computing).
 author:         Jared Berghold
-copyright:      Copyright 2015, Intersect Australia Pty Ltd
+copyright:      Copyright 2016, Intersect Australia Pty Ltd
 source:         https://github.com/IntersectAustralia/owntime-manager
 """
 
@@ -17,16 +17,16 @@ def PrintUsage():
     """
     Print usage instructions
     """
-    print "Usage:"
-    print ""
-    print "   Create a new VM: \t"
-    print "      " + os.path.basename(__file__) + " vm create <user_id> [-f \"flavour name\" -i \"image name\"]"
-    print ""
-    print "   List VMs for given user:"
-    print "      " + os.path.basename(__file__) + " user <user_id>"
-    print ""
-    print "   Manage VM for given user:"
-    print "      " + os.path.basename(__file__) + " vm [status|suspend|resume|reboot|delete] <vm_name>"
+    print("Usage:")
+    print("")
+    print("   Create a new VM: \t")
+    print("      " + os.path.basename(__file__) + " vm create <user_id> [-f \"flavour name\" -i \"image name\"]")
+    print("")
+    print("   List VMs for given user:")
+    print("      " + os.path.basename(__file__) + " user <user_id>")
+    print("")
+    print("   Manage VM for given user:")
+    print("      " + os.path.basename(__file__) + " vm [status|suspend|resume|reboot|delete] <vm_name>")
 
 def CreateConnection():
     """
@@ -45,7 +45,7 @@ def GenerateKeypair(conn, userID):
     """
     kp = conn.compute.find_keypair(userID)
     if kp is not None:
-        print "Using existing keypair: \'" + kp.name + "\'"
+        print("Using existing keypair: \'" + kp.name + "\'")
     else:
         dirname = os.path.dirname(os.path.realpath("__file__")) # get current directory
         filename = os.path.join(dirname, userID)
@@ -59,7 +59,7 @@ def GenerateKeypair(conn, userID):
             f.write("%s" % kp.public_key)
         os.chmod(filenamePrivate, 0o600)
         os.chmod(filenamePublic, 0o644)
-        print "Created new keypair, \'" + kp.name + "\' and saved it to " + dirname
+        print("Created new keypair, \'" + kp.name + "\' and saved it to " + dirname)
     return kp
 
 def CreateVM(conn, arguments):
@@ -72,17 +72,17 @@ def CreateVM(conn, arguments):
     iterArguments = iter(arguments)    
     while True:
       try:
-        arg = iterArguments.next()
+        arg = next(iterArguments)
         if (arg == "-f"):
-            flavourName = iterArguments.next()
+            flavourName = next(iterArguments)
         elif (arg == "-i"):
-            imageName = iterArguments.next()
+            imageName = next(iterArguments)
         else:
             userID = arg
       except StopIteration:
             break
     
-    print "Creating a new VM (flavour = \'" + flavourName + "\' image = \'" + imageName + "\') for \'" + userID + "\'..."
+    print("Creating a new VM (flavour = \'" + flavourName + "\' image = \'" + imageName + "\') for \'" + userID + "\'...")
     
     # Choose a name for the VM - the name will use the userID as the prefix followed by a number
     # Make sure the number used hasn't already been used before
@@ -108,45 +108,42 @@ def CreateVM(conn, arguments):
     # Create a new VM with the following properties
     args = {
         "name":vmName,
-        "flavor":flavour,
+        "flavor_id":flavour.id,
         "security_groups":[{"name":"default"}],
-        "image":image,
+        "image_id":image.id,
         "key_name": keypair.name,
         "availability_zone":"intersect"
     }
 
     newVM = conn.compute.create_server(**args)
 
-    print "Successfully created new VM: \'" + vmName + "\'"
+    print("Successfully created new VM: \'" + vmName + "\'")
 
     # Get IP address for the new VM
-    serverDetails = conn.compute.get_server(newVM.id)
-
-    while serverDetails.status != "ACTIVE":
-        serverDetails = conn.compute.get_server(newVM.id)
+    serverDetails = conn.compute.wait_for_server(newVM)
 
     ipAddress = "0.0.0.0"
     for key, value in serverDetails.addresses.items():
         ipAddress = value[0].get('addr')
         break
 
-    print "IP address of new VM is: " + ipAddress
+    print("IP address of new VM is: " + ipAddress)
 
 def ListVMs(conn, userID):
     """
     List all VMs associated with a given userID
     """
-    print "Listing VMs for \'" + userID + "\':"
+    print("Listing VMs for \'" + userID + "\':")
     
     servers = conn.compute.servers(details=True, name=r"" + userID + "-[0-9]+")
 
     for server in servers:
-        print "Name: \'" + server.name + "\'\t",
+        print("Name: \'" + server.name + "\'\t", end="")
         ipAddress = "0.0.0.0"
         for key, value in server.addresses.items():
             ipAddress = value[0].get('addr')
             break
-        print "IP: " + ipAddress
+        print("IP: " + ipAddress)
 
 def ManageVM(conn, vmName, action):
     """
@@ -169,55 +166,55 @@ def ManageVM(conn, vmName, action):
         for server in servers:
             if (server.name == vmName):
                 if (action == "status"):
-                    print "\'" + vmName + "\' status is: " + serverDetails.status
+                    print("\'" + vmName + "\' status is: " + serverDetails.status)
                 elif (action == "suspend"):
                     if (serverDetails.status == "ACTIVE"):
-                        print "Suspending \'" + vmName + "\'..." 
+                        print("Suspending \'" + vmName + "\'...") 
                         try:
                             server.action(session=conn.session,body={"suspend": None})
                         except:
                             pass
                         while serverDetails.status != "SUSPENDED":
                             serverDetails = conn.compute.get_server(serverDetails.id)
-                        print "Suspended \'" + vmName + "\'"
+                        print("Suspended \'" + vmName + "\'")
                     else:
-                        print "\'" + vmName + "\' already suspended or inactive"
+                        print("\'" + vmName + "\' already suspended or inactive")
                 elif (action == "resume"):
                     if (serverDetails.status == "SUSPENDED"):
-                        print "Resuming \'" + vmName + "\'..."
+                        print("Resuming \'" + vmName + "\'...")
                         try:
                             server.action(session=conn.session,body={"resume": None})
                         except:
                             pass
                         while serverDetails.status != "ACTIVE":
                             serverDetails = conn.compute.get_server(serverDetails.id)
-                        print "Resumed \'" + vmName + "\'"
+                        print("Resumed \'" + vmName + "\'")
                     else:
-                        print "\'" + vmName + "\' already active"
+                        print("\'" + vmName + "\' already active")
                 elif (action == "reboot"):
-                    print "Rebooting \'" + vmName + "\'..."
+                    print("Rebooting \'" + vmName + "\'...")
                     try:
                         server.action(session=conn.session,body={"reboot": {"type": "SOFT"}})
                     except:
                         pass
                     while serverDetails.status != "ACTIVE":
                         serverDetails = conn.compute.get_server(serverDetails.id)
-                    print "Rebooted \'" + vmName + "\'"
+                    print("Rebooted \'" + vmName + "\'")
                 elif (action == "delete"):
-                    print "This action cannot be reversed. Are you sure you want to delete \'" + vmName + "\' (y/n)?"
-                    answer = raw_input().lower()
+                    print("This action cannot be reversed. Are you sure you want to delete \'" + vmName + "\' (y/n)?")
+                    answer = input().lower()
                     if (answer == "y"):
-                        print "Deleting \'" + vmName + "\'..."
+                        print("Deleting \'" + vmName + "\'...")
                         conn.compute.delete_server(serverDetails.id)
                         try:
                             while True:
                                 conn.compute.get_server(serverDetails.id)
                         except exceptions.ResourceNotFound as error:    
-                            print "Deleted \'" + vmName + "\'"
+                            print("Deleted \'" + vmName + "\'")
                     else:
-                        print "Aborted delete"
+                        print("Aborted delete")
     else:
-        print "\'" + vmName + "\' could not be found" 
+        print("\'" + vmName + "\' could not be found") 
 
 def main(argv):
     conn = CreateConnection()
@@ -247,14 +244,14 @@ def main(argv):
                 PrintUsage()
         except Exception as ex:
             exceptionString = str(ex)
-            print "Error:"
-            print "  Check your Internet connection, clouds.yaml configuration file and availability of NecTAR Cloud service"
-            print "  Run \'" + os.path.basename(__file__) + "\' to see usage instructions"
-            print "  Exception Details: " + exceptionString
+            print("Error:")
+            print("  Check your Internet connection, clouds.yaml configuration file and availability of NecTAR Cloud service")
+            print("  Run \'" + os.path.basename(__file__) + "\' to see usage instructions")
+            print("  Exception Details: " + exceptionString)
             
             # The following 3 lines are used for debugging only
             #exc_type, exc_value, exc_traceback = sys.exc_info()
-            #print "*** PRINT TRACEBACK ***"
+            #print("*** PRINT TRACEBACK ***")
             #traceback.print_tb(exc_traceback)
 
 if __name__ == "__main__":
